@@ -17,3 +17,8 @@ const kMessageContainerDecoration = BoxDecoration(
     top: BorderSide(color: Colors.lightBlueAccent, width: 2.0),
   ),
 );
+
+const kFlashChatTextStyle = TextStyle(
+  fontSize: 40.0,
+  fontWeight: FontWeight.w900,
+);
