@@ -68,6 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 } catch (e) {
                   print(e);
+                  String message =
+                      'Oops! Make sure to have the right combination of email and password!';
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(message)));
                 }
               },
             ),

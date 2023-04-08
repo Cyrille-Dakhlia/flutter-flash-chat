@@ -69,6 +69,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   }
                 } catch (e) {
                   print(e);
+                  String message =
+                      'Oops! Make sure to choose a validate email address, and choose a password of at least 6 characters.';
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(message)));
                 }
               },
             ),

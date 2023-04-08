@@ -25,6 +25,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (user != null) loggedInUser = user;
     } catch (e) {
       print(e);
+      throw new Exception('User is null');
     }
   }
 
