@@ -14,8 +14,8 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen>
     with SingleTickerProviderStateMixin {
-  AnimationController controller;
-  Animation animation;
+  late AnimationController controller;
+  late Animation animation;
 
   @override
   void initState() {
@@ -92,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 }
 
 class AnimatedTitle extends StatelessWidget {
-  AnimatedTitle({this.animationStatus, this.animatedValue});
+  AnimatedTitle({required this.animationStatus, required this.animatedValue});
 
   AnimationStatus animationStatus;
   double animatedValue;
