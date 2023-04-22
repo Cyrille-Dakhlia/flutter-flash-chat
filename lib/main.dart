@@ -16,7 +16,12 @@ Future<void> main() async {
   if (kDebugMode) {
     // Use custom script ./run_firebase_emulators_data
     try {
+      // Disable persistence to avoid discrepancies between emulated database and local caches since offline cache of Firestore SDK is not automatically cleared, while Firestore emulator clears database contents when shut down
+      final settings = FirebaseFirestore.instance.settings
+          .copyWith(persistenceEnabled: false);
+      FirebaseFirestore.instance.settings = settings;
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+
       await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
     } catch (e) {
       print(e);
