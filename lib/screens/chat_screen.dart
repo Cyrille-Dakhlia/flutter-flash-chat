@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatScreen extends StatefulWidget {
   static String routeId = 'chat_screen';
@@ -10,8 +11,11 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final _db = FirebaseFirestore.instance;
+
   final _auth = FirebaseAuth.instance;
   late User loggedInUser;
+  String messageText = '';
 
   @override
   void initState() {
@@ -50,6 +54,28 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _db.collection('messages').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Text('Oops, no data!');
+                }
+
+                var results = <MessageBubble>[];
+
+                for (var message in snapshot.data!.docs) {
+                  var sender = message.data()['sender'];
+                  var text = message.data()['text'];
+                  results.add(MessageBubble(sender: sender, text: text));
+                }
+
+                return Expanded(
+                  child: ListView(
+                    children: results,
+                  ),
+                );
+              },
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -57,15 +83,22 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      // TODO: remove text after sending message
                       onChanged: (value) {
-                        //Do something with the user input.
+                        messageText = value;
                       },
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
                   TextButton(
                     onPressed: () {
-                      //Implement send functionality.
+                      if (messageText.isNotEmpty) {
+                        _db.collection('messages').add({
+                          'text': messageText,
+                          'sender': loggedInUser.email,
+                        }).then((value) =>
+                            print('Document added with ID: ${value.id}'));
+                      }
                     },
                     child: Text(
                       'Send',
@@ -77,6 +110,52 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  const MessageBubble({
+    Key? key,
+    required this.sender,
+    required this.text,
+  }) : super(key: key);
+
+  final String sender;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            sender,
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 13.0,
+            ),
+          ),
+          Material(
+            elevation: 5.0,
+            borderRadius: BorderRadius.circular(30.0),
+            color: Colors.blueAccent,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15.0,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
