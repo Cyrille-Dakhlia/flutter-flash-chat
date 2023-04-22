@@ -12,15 +12,21 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final _db = FirebaseFirestore.instance;
-
   final _auth = FirebaseAuth.instance;
   late User loggedInUser;
   String messageText = '';
+  final _textController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     getCurrentUser();
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   void getCurrentUser() {
@@ -62,7 +68,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
-                      // TODO: remove text after sending message
+                      controller: _textController,
                       onChanged: (value) {
                         messageText = value;
                       },
@@ -77,6 +83,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           'sender': loggedInUser.email,
                         }).then((value) =>
                             print('Document added with ID: ${value.id}'));
+                        _textController.clear();
                       }
                     },
                     child: Text(
