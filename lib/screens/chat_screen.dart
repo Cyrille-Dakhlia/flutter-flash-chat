@@ -60,7 +60,9 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            MessageBubbleStream(stream: _db.collection('messages').snapshots()),
+            MessageBubbleStream(
+                stream: _db.collection('messages').snapshots(),
+                loggedInUser: loggedInUser),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -102,9 +104,10 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class MessageBubbleStream extends StatelessWidget {
-  const MessageBubbleStream({required this.stream});
+  const MessageBubbleStream({required this.stream, required this.loggedInUser});
 
   final Stream<QuerySnapshot<Map<String, dynamic>>> stream;
+  final User loggedInUser;
 
   @override
   Widget build(BuildContext context) {
@@ -120,11 +123,16 @@ class MessageBubbleStream extends StatelessWidget {
         for (var message in snapshot.data!.docs) {
           final sender = message.data()['sender'];
           final text = message.data()['text'];
-          messageBubbleList.add(MessageBubble(sender: sender, text: text));
+
+          bool isMyMessage = sender == loggedInUser.email;
+
+          messageBubbleList.add(MessageBubble(
+              isMyMessage: isMyMessage, sender: sender, text: text));
         }
 
         return Expanded(
           child: ListView(
+            padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
             children: messageBubbleList,
           ),
         );
@@ -138,43 +146,55 @@ class MessageBubble extends StatelessWidget {
     Key? key,
     required this.sender,
     required this.text,
+    required this.isMyMessage,
   }) : super(key: key);
 
   final String sender;
   final String text;
+  final bool isMyMessage;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            sender,
-            style: TextStyle(
-              color: Colors.black54,
-              fontSize: 13.0,
-            ),
+    return Column(
+      crossAxisAlignment:
+          isMyMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(
+          sender,
+          style: TextStyle(
+            color: Colors.black54,
+            fontSize: 13.0,
           ),
-          Material(
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10.0, 5.0, 0.0, 15.0),
+          child: Material(
             elevation: 5.0,
-            borderRadius: BorderRadius.circular(30.0),
-            color: Colors.blueAccent,
+            borderRadius: isMyMessage
+                ? BorderRadius.only(
+                    topLeft: Radius.circular(30.0),
+                    bottomRight: Radius.circular(30.0),
+                    bottomLeft: Radius.circular(30.0))
+                : BorderRadius.only(
+                    topRight: Radius.circular(30.0),
+                    bottomRight: Radius.circular(30.0),
+                    bottomLeft: Radius.circular(30.0),
+                  ),
+            color: isMyMessage ? Colors.blueAccent : Colors.grey.shade300,
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
               child: Text(
                 text,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: isMyMessage ? Colors.white : Colors.black,
                   fontSize: 15.0,
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
