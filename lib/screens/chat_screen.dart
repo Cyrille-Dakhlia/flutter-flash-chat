@@ -61,7 +61,8 @@ class _ChatScreenState extends State<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             MessageBubbleStream(
-                stream: _db.collection('messages').snapshots(),
+                stream:
+                    _db.collection('messages').orderBy('timestamp').snapshots(),
                 loggedInUser: loggedInUser),
             Container(
               decoration: kMessageContainerDecoration,
@@ -83,6 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _db.collection('messages').add({
                           'text': messageText,
                           'sender': loggedInUser.email,
+                          'timestamp': FieldValue.serverTimestamp(),
                         }).then((value) =>
                             print('Document added with ID: ${value.id}'));
                         _textController.clear();
@@ -120,7 +122,7 @@ class MessageBubbleStream extends StatelessWidget {
 
         var messageBubbleList = <MessageBubble>[];
 
-        for (var message in snapshot.data!.docs) {
+        for (var message in snapshot.data!.docs.reversed) {
           final sender = message.data()['sender'];
           final text = message.data()['text'];
 
@@ -132,6 +134,7 @@ class MessageBubbleStream extends StatelessWidget {
 
         return Expanded(
           child: ListView(
+            reverse: true,
             padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
             children: messageBubbleList,
           ),
