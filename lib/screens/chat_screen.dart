@@ -54,28 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _db.collection('messages').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Text('Oops, no data!');
-                }
-
-                var results = <MessageBubble>[];
-
-                for (var message in snapshot.data!.docs) {
-                  var sender = message.data()['sender'];
-                  var text = message.data()['text'];
-                  results.add(MessageBubble(sender: sender, text: text));
-                }
-
-                return Expanded(
-                  child: ListView(
-                    children: results,
-                  ),
-                );
-              },
-            ),
+            MessageBubbleStream(stream: _db.collection('messages').snapshots()),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -111,6 +90,38 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class MessageBubbleStream extends StatelessWidget {
+  const MessageBubbleStream({required this.stream});
+
+  final Stream<QuerySnapshot<Map<String, dynamic>>> stream;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Text('Oops, no data!');
+        }
+
+        var messageBubbleList = <MessageBubble>[];
+
+        for (var message in snapshot.data!.docs) {
+          final sender = message.data()['sender'];
+          final text = message.data()['text'];
+          messageBubbleList.add(MessageBubble(sender: sender, text: text));
+        }
+
+        return Expanded(
+          child: ListView(
+            children: messageBubbleList,
+          ),
+        );
+      },
     );
   }
 }
